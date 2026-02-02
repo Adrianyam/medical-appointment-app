@@ -1,13 +1,15 @@
 Proyecto de la materia Backend "Medical appointment app"
 
-Objetivo general:
+<br>
 
-Crear una app que genere citas medicas para un hospital
+Objetivo general: 
 
+Crear una app que genere citas medicas para un hospital 
+<br><br>
 Tecnologias a usar:
 
-Laravel
-Composer
-LiveWire
-JetStream
-PHP
+Laravel <br>
+Composer <br>
+LiveWire <br>
+JetStream <br>
+PHP <br>
