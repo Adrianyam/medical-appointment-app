@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function() {
             Route::middleware('web', 'auth')
                 ->prefix('admin')
-                ->name('admin')
+                ->name('admin.')
                 ->group(base_path('routes/admin.php'));
             
         }
@@ -28,3 +28,4 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+    
