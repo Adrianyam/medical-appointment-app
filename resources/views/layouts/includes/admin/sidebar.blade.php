@@ -18,6 +18,12 @@
          'active' => request()->routeIs('admin.roles.*'),
          
       ],
+      [
+         'name' => 'Usuarios',
+         'icon' => 'fa-solid fa-users',
+         'href' => route('admin.users.index'), //ruta del controlador de usuarios
+         'active' => request()->routeIs('admin.users.*'), //si estadentro de cualquiera de aqui
+      ],
     ];
 @endphp
 

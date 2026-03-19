@@ -55,13 +55,41 @@
       @stack('modals')
 
       {{--mostrar el sweetalert--}}
-    @if (session('message'))
+    @if (session('swal'))
         <script>
             Swal.fire(@json(session('swal')));
         </script>
     @endif
 
       @livewireScripts
+
+      <script>
+        // Confirm delete using SweetAlert2 for any form marked with data-swal-confirm
+        document.addEventListener('submit', function (event) {
+          const form = event.target.closest('form[data-swal-confirm]');
+          if (!form) {
+            return;
+          }
+
+          event.preventDefault();
+
+          Swal.fire({
+            title: '¿Estás seguro?',
+            text: 'No podrás revertir esto',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              form.submit();
+            }
+          });
+        });
+      </script>
+
       <script src="https://cdn.jsdelivr.net/npm/flowbite@4.0.1/dist/flowbite.min.js"></script>
       <script src="https://kit.fontawesome.com/2081fc20de.js" crossorigin="anonymous"></script>
 
