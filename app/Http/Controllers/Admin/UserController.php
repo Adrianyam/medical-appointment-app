@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -110,6 +111,20 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+
+        //no permitir que el usuario logueado se borre asi mismo
+        if($user->id == Auth::user()->id) {
+            session()->flash('swal', [
+                'icon' => 'error',
+                'title' => 'No puedes eliminarte a ti mismo',
+                'text' => 'No puedes eliminar tu propio usuario',
+            ]); //mensaje de error
+
+            abort(403, 'No puedes borrar tu propio usuario'); //lanzamos un error 403 (Forbidden)
+
+            return redirect()->route('admin.users.index'); //redireccionamos a la lista de usuarios
+        }
+
         //eliminar roles asociados al usuario
         $user->roles()->detach();
 
