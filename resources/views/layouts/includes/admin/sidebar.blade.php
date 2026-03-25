@@ -24,6 +24,12 @@
          'href' => route('admin.users.index'), //ruta del controlador de usuarios
          'active' => request()->routeIs('admin.users.*'), //si estadentro de cualquiera de aqui
       ],
+      [
+         'name' => 'Pacientes',
+         'icon' => 'fa-solid fa-user-injured',
+         'href' => route('admin.patients.index'), //ruta del controlador de usuarios
+         'active' => request()->routeIs('admin.patients.*'), //si estadentro de cualquiera de aqui
+      ],
     ];
 @endphp
 
