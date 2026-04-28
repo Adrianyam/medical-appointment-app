@@ -1,3 +1,25 @@
+{{-- Logica de PHP para manejar errores y controlar la pestaña activa --}}
+
+@php
+  // Definimos que campos pertenecen a cada pestaña para detectar errores
+  $errorGroups = [
+    'antecedentes' => ['allergies', 'chronic_conditions', 'surgical_history', 'family_history'],
+    'informacion-general' => ['blood_type_id', 'observations'],
+    'contacto-emergencia' => ['emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship'],
+  ];
+
+  // Pestaña por defecto
+  $initialTab = 'datos-personales';
+
+  //Si hay errores, buscamos en que grupo estan para abrir esa pestaña automaticamente
+  foreach ($errorGroups as $tabName => $fields) {
+    if($errors ->hasAny($fields)){
+      $initialTab = $tabName;
+      break;
+    }
+  }
+@endphp
+
 <x-admin-layout tittle="Pacientes" :breadcrumbs="[
     [
       'name' => 'Dashboard',
@@ -41,11 +63,9 @@
 
     {{--tabs de navegacion--}}
   <x-wire-card>
-    <div x-data="{tab: 'datos personales'}">
+    <div x-data="{tab: '{{ $initialTab }}'}">
 
       {{--menu de pestañas--}}
-      <div class="border-b border-gray-200">
-          <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
 
             {{--datos personales Tab 1--}}
               <li class="me-2">
@@ -62,48 +82,73 @@
               </li>
 
               {{--Antecedentes Tab 2--}}
+              @php 
+                  $hasError = $errors->hasAny($errorGroups['antecedentes']);
+                @endphp
               <li class="me-2">
                   <a href="#" x-on:click="tab = 'Antecedentes'"
                   :class="{
-                    'text-blue-600 border-blue-600 active': tab === 'Antecedentes',
-                    'border-transparent hover:text-blue-600 hover:border-blue-600': tab !== 'Antecedentes'
-                  }"
-                    class="inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg  group trnasition-colors duration-200"
+                    'text-red-600 border-red-600': {{ $hasError ? 'true': 'false' }} && tab !== 'antecedentes',
+                      'text-blue-600 border-blue-600 active': tab === 'antecedentes' && !{{ $hasError ? 'true': 'false' }}, 
+                      'text-red-600 border-red-600 active': tab === 'antecedentes' && {{ $hasError ? 'true': 'false' }},
+                      'border-transparent hover:text-blue-600 hover:border-gray-300': tab !== 'antecedentes' && !{{ $hasError ? 'true': 'false' }},
+                    }"
+                      class="inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group transition-colors duration-200 {{ $hasError ? 'text-red-600 border-red-600': '' }}"
                     :aria-current="tab === 'datos-personales' ? 'page' : undefined">
                       <i class="fa-solid fa-file-lines me-2"></i>
                       Antecedentes
+                      @if ($hasError)
+                          <i class="fa-solid fa-circle-exclamation ms-2 animate-pulse"></i>
+                        @endif
                   </a>
               </li>
 
-              {{--Tab 3 Informacion general--}}
+              {{--Tab 3 Información general--}}
+               @php 
+                  $hasError = $errors->hasAny($errorGroups['informacion-general']);
+                @endphp
               <li class="me-2">
-                  <a href="#" x-on:click="tab = 'Informacion general'"
+                  <a href="#" x-on:click="tab = 'Información general'"
                   :class="{
-                    'text-blue-600 border-blue-600 active': tab === 'Informacion general',
-                    'border-transparent hover:text-blue-600 hover:border-blue-600': tab !== 'Informacion general'
-                  }"
+                    'text-red-600 border-red-600': {{ $hasError ? 'true': 'false' }} && tab !== 'informacion-general',
+                      'text-blue-600 border-blue-600 active': tab === 'informacion-general' && !{{ $hasError ? 'true': 'false' }}, 
+                      'text-red-600 border-red-600 active': tab === 'informacion-general' && {{ $hasError ? 'true': 'false' }},
+                      'border-transparent hover:text-blue-600 hover:border-gray-300': tab !== 'informacion-general' && !{{ $hasError ? 'true': 'false' }},
+                      }"
                     class="inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg  group trnasition-colors duration-200"
-                    :aria-current="tab === 'Informacion general' ? 'page' : undefined">
+                    :aria-current="tab === 'Información general' ? 'page' : undefined">
                       <i class="fa-solid fa-info me-2"></i>
-                      Informacion general
+                      Información general
+                      @if ($hasError)
+                          <i class="fa-solid fa-circle-exclamation ms-2 animate-pulse"></i>
+                        @endif
                   </a>
               </li>
 
               {{--Tab 4 Contacto-de-emergencia --}}
+              @php 
+                  $hasError = $errors->hasAny($errorGroups['contacto-emergencia']);
+                @endphp
               <li class="me-2">
                   <a href="#" x-on:click.prevent="tab = 'contacto-de-emergencia'"
                   :class="{
-                    'text-blue-600 border-blue-600 active': tab === 'contacto-de-emergencia',
-                    'border-transparent hover:text-blue-600 hover:border-blue-600': tab !== 'contacto-de-emergencia'
-                  }"
+                    'text-red-600 border-red-600': {{ $hasError ? 'true': 'false' }} && tab !== 'contacto-emergencia',
+                      'text-blue-600 border-blue-600 active': tab === 'contacto-emergencia' && !{{ $hasError ? 'true': 'false' }}, 
+                      'text-red-600 border-red-600 active': tab === 'contacto-emergencia' && {{ $hasError ? 'true': 'false' }},
+                      'border-transparent hover:text-blue-600 hover:border-gray-300': tab !== 'contacto-emergencia' && !{{ $hasError ? 'true': 'false' }},
+                      }"
                     class="inline-flex items-center justify-center p-4 border-b-2 rounded-t-lg group transition-colors duration-200"
                     :aria-current="tab === 'contacto-de-emergencia' ? 'page' : undefined">
                       <i class="fa-solid fa-heart me-2"></i>
                       Contacto de emergencia
+                       @if ($hasError)
+                          <i class="fa-solid fa-circle-exclamation ms-2 animate-pulse"></i>
+                        @endif
                   </a>
               </li>           
-          </ul>
-      </div>
+          {{-- </ul> --}}
+        {{-- </div> --}}
+        
       {{---contenido de los tabs--}}
       <div class="px-4 mt-4">
 
@@ -112,7 +157,7 @@
           <div class="bg-blue border-l-4 border-blue-500 p-4 mb-6 rounded-r-lg shadow-sm">
             <div class=flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4>
               
-              {{--lado izquierdo:informacion--}}
+              {{--lado izquierdo:Información--}}
               <div class="flex items-start">
                 <div class="flex-shrink-0">
                   <i class="fa-solid fa-user-gear text-blue-500 text-xl mt-1"></i>
@@ -122,7 +167,7 @@
                      <h3 class="text-sm font-bold text-blue-800">Edicion de cuenta de usuario</h3>
                       <div class="mt-1 text-sm text-blue-600">
                   
-                        <p>La <strong>informacion de acceso</strong> (Nombre, Email y Contraseña) debe de gestionarse desde la cuenta de usuario asociada.</p>
+                        <p>La <strong>Información de acceso</strong> (Nombre, Email y Contraseña) debe de gestionarse desde la cuenta de usuario asociada.</p>
                       </div>
                   </div>
               </div>
@@ -191,8 +236,8 @@
         </div>
       </div>
 
-        {{--contenido de tab3:informacion general--}}
-        <div x-show="tab === 'Informacion general'" style="display: none;">
+        {{--contenido de tab3:Información general--}}
+        <div x-show="tab === 'Información general'" style="display: none;">
           <x-wire-native-select label="Tipo de Sangre" class="mb-4" name="blood_type_id">
             <option value="">Seleccione un tipo de sangre</option>
             @foreach ($bloodTypes as $bloodType)
