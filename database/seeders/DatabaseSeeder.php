@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
         // LLamar a los seeders creados
         $this->call([RoleSeeder::class]);
         $this->call([UserSeeder::class]);
+        $this->call([MedicalUsersSeeder::class]);
+        $this->call([DoctorSeeder::class]);
         $this->call([BloodTypeSeeder::class]);
 
         

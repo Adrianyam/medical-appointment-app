@@ -30,6 +30,18 @@
          'href' => route('admin.patients.index'), //ruta del controlador de usuarios
          'active' => request()->routeIs('admin.patients.*'), //si estadentro de cualquiera de aqui
       ],
+      [
+         'name' => 'Doctores',
+         'icon' => 'fa-solid fa-user-doctor',
+         'href' => route('admin.doctors.index'),
+         'active' => request()->routeIs('admin.doctors.*'),
+      ],
+      [
+         'name' => 'Citas',
+         'icon' => 'fa-solid fa-calendar-check',
+         'href' => route('admin.appointments.index'),
+         'active' => request()->routeIs('admin.appointments.*'),
+      ],
     ];
 @endphp
 
