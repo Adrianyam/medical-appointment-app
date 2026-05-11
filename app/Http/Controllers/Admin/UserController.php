@@ -66,7 +66,9 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        $user->load(['roles', 'doctor', 'patient']);
+
+        return view('admin.users.show', compact('user'));
     }
 
     /**

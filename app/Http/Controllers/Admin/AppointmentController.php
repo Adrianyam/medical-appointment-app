@@ -6,10 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
+use App\Services\AppointmentConfirmationEmailService;
+use App\Services\AppointmentReceiptPdfService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
+    public function receipt(Appointment $appointment, AppointmentReceiptPdfService $pdfService)
+    {
+        return $pdfService->makePdf($appointment)->stream(sprintf('comprobante-cita-%d.pdf', $appointment->id));
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -40,10 +48,23 @@ class AppointmentController extends Controller
             'reason' => 'nullable|string',
         ]);
 
-        Appointment::create($validated);
+        $appointment = Appointment::create([
+            'patient_id' => $validated['patient_id'],
+            'doctor_id' => $validated['doctor_id'],
+            'date' => $validated['date'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'duration' => Carbon::createFromFormat('H:i', $validated['start_time'])
+                ->diffInMinutes(Carbon::createFromFormat('H:i', $validated['end_time'])),
+            'reason' => $validated['reason'] ?? null,
+            'status' => 1,
+        ]);
+
+        $pdfPath = app(AppointmentReceiptPdfService::class)->generate($appointment);
+        app(AppointmentConfirmationEmailService::class)->send($appointment, $pdfPath);
 
         return redirect()->route('admin.appointments.index')
-            ->with('success', 'Cita creada exitosamente.');
+            ->with('success', 'Cita creada exitosamente, PDF generado y correos enviados.');
     }
 
     /**

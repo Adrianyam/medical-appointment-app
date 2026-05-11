@@ -10,6 +10,17 @@ use Illuminate\Validation\Rule;
 
 class DoctorController extends Controller
 {
+    private function specialties(): array
+    {
+        return [
+            'Medicina General',
+            'Dermatología',
+            'Cardiología',
+            'Pediatría',
+            'Ginecología',
+        ];
+    }
+
     public function index()
     {
         return view('admin.doctors.index');
@@ -17,19 +28,28 @@ class DoctorController extends Controller
 
     public function create()
     {
-        $users = User::whereDoesntHave('doctor')
+        $selectedUserId = request('user_id');
+
+        $users = User::whereHas('roles', function ($query) {
+                $query->where('name', 'Medico');
+            })
+            ->whereDoesntHave('doctor')
             ->whereDoesntHave('patient')
             ->orderBy('name')
             ->get();
 
-        return view('admin.doctors.create', compact('users'));
+        return view('admin.doctors.create', [
+            'users' => $users,
+            'selectedUserId' => $selectedUserId,
+            'specialties' => $this->specialties(),
+        ]);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'user_id' => ['required', 'exists:users,id', 'unique:doctors,user_id'],
-            'specialization' => ['required', 'string', 'max:255'],
+            'specialization' => ['required', Rule::in($this->specialties())],
             'license_number' => ['required', 'string', 'max:255', 'unique:doctors,license_number'],
             'information' => ['nullable', 'string'],
         ]);
@@ -49,17 +69,22 @@ class DoctorController extends Controller
 
     public function edit(Doctor $doctor)
     {
-        $users = User::where(function ($query) {
-            $query->whereDoesntHave('doctor')
-                ->whereDoesntHave('patient');
+        $users = User::whereHas('roles', function ($query) {
+                $query->where('name', 'Medico');
             })
-            ->orWhere(function ($query) use ($doctor) {
-            $query->where('id', $doctor->user_id);
+            ->where(function ($query) use ($doctor) {
+                $query->whereDoesntHave('doctor')
+                    ->whereDoesntHave('patient')
+                    ->orWhere('id', $doctor->user_id);
             })
             ->orderBy('name')
             ->get();
 
-        return view('admin.doctors.edit', compact('doctor', 'users'));
+        return view('admin.doctors.edit', [
+            'doctor' => $doctor,
+            'users' => $users,
+            'specialties' => $this->specialties(),
+        ]);
     }
 
     public function update(Request $request, Doctor $doctor)
@@ -70,7 +95,7 @@ class DoctorController extends Controller
                 'exists:users,id',
                 Rule::unique('doctors', 'user_id')->ignore($doctor->id),
             ],
-            'specialization' => ['required', 'string', 'max:255'],
+            'specialization' => ['required', Rule::in($this->specialties())],
             'license_number' => [
                 'required',
                 'string',
@@ -94,6 +119,58 @@ class DoctorController extends Controller
             ->with('success', 'Doctor eliminado correctamente.');
     }
 
+    public function editDoctorInfo(User $user)
+    {
+        // Cargar el doctor si existe
+        $user->load('doctor');
+        
+        $users = User::whereHas('roles', function ($query) {
+                $query->where('name', 'Medico');
+            })
+            ->where(function ($query) use ($user) {
+                $query->whereDoesntHave('doctor')
+                    ->whereDoesntHave('patient')
+                    ->orWhere('id', $user->id);
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.doctors.edit-user-doctor', [
+            'user' => $user,
+            'doctor' => $user->doctor,
+            'users' => $users,
+            'specialties' => $this->specialties(),
+        ]);
+    }
+
+    public function updateDoctorInfo(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'user_id' => [
+                'required',
+                'exists:users,id',
+                Rule::unique('doctors', 'user_id')->ignore($user->doctor?->id),
+            ],
+            'specialization' => ['required', Rule::in($this->specialties())],
+            'license_number' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('doctors', 'license_number')->ignore($user->doctor?->id),
+            ],
+            'information' => ['nullable', 'string'],
+        ]);
+
+        if ($user->doctor) {
+            $user->doctor->update($data);
+        } else {
+            Doctor::create($data);
+        }
+
+        return redirect()->route('admin.doctors.index')
+            ->with('success', 'Información del doctor actualizada correctamente.');
+    }
+
     /**
      * Mostrar formulario para editar horarios por día
      */
@@ -110,14 +187,49 @@ class DoctorController extends Controller
      */
     public function updateSchedule(Request $request, Doctor $doctor)
     {
-        // Esperamos recibir una estructura schedule[day] => array de franjas (ej. "08:00-08:15").
         $input = $request->input('schedule', []);
 
-        // Normalizar: asegurarnos que cada día tenga array de slots
         $days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
         $normalized = [];
+
+        $toTwentyFourHour = function (?string $hour, ?string $minute, ?string $period): ?string {
+            if (!$hour || !$minute || !$period) {
+                return null;
+            }
+
+            $hourNumber = (int) $hour;
+            $minute = str_pad((string) $minute, 2, '0', STR_PAD_LEFT);
+            $period = strtoupper($period);
+
+            if ($period === 'AM') {
+                $hourNumber = $hourNumber === 12 ? 0 : $hourNumber;
+            } elseif ($period === 'PM' && $hourNumber !== 12) {
+                $hourNumber += 12;
+            }
+
+            return sprintf('%02d:%s', $hourNumber, $minute);
+        };
+
         foreach ($days as $day) {
-            $normalized[$day] = array_values(array_filter($input[$day] ?? []));
+            $dayData = $input[$day] ?? [];
+
+            $active = filter_var($dayData['active'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $start = $toTwentyFourHour(
+                $dayData['start_hour'] ?? null,
+                $dayData['start_minute'] ?? null,
+                $dayData['start_period'] ?? null
+            );
+            $end = $toTwentyFourHour(
+                $dayData['end_hour'] ?? null,
+                $dayData['end_minute'] ?? null,
+                $dayData['end_period'] ?? null
+            );
+
+            $normalized[$day] = [
+                'active' => $active,
+                'start' => $active ? $start : null,
+                'end' => $active ? $end : null,
+            ];
         }
 
         $doctor->update(['schedule' => $normalized]);

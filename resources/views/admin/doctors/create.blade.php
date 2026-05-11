@@ -1,4 +1,4 @@
-<x-admin-layout tittle="Nuevo Doctor" :breadcrumbs="[
+<x-admin-layout tittle="{{ $selectedUserId ? 'Completar Doctor' : 'Nuevo Doctor' }}" :breadcrumbs="[
     [
       'name' => 'Dashboard',
       'href' => route('admin.dashboard'),
@@ -14,7 +14,7 @@
 
 <div class="mt-6 max-w-2xl mx-auto">
     <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Registrar Doctor</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">{{ $selectedUserId ? 'Completar información del Doctor' : 'Registrar Doctor' }}</h2>
 
         <form action="{{ route('admin.doctors.store') }}" method="POST" class="space-y-6">
             @csrf
@@ -24,7 +24,7 @@
                 <select id="user_id" name="user_id" required class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     <option value="">-- Seleccionar Usuario --</option>
                     @foreach($users as $user)
-                        <option value="{{ $user->id }}" @selected(old('user_id') == $user->id)>{{ $user->name }} - {{ $user->email }}</option>
+                        <option value="{{ $user->id }}" @selected(old('user_id', $selectedUserId ?? null) == $user->id)>{{ $user->name }} - {{ $user->email }}</option>
                     @endforeach
                 </select>
                 @error('user_id')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
@@ -32,7 +32,12 @@
 
             <div>
                 <label for="specialization" class="block text-sm font-medium text-gray-700 mb-2">Especialidad <span class="text-red-500">*</span></label>
-                <input type="text" id="specialization" name="specialization" value="{{ old('specialization') }}" class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                <select id="specialization" name="specialization" required class="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Seleccionar Especialidad --</option>
+                    @foreach($specialties as $specialty)
+                        <option value="{{ $specialty }}" @selected(old('specialization') === $specialty)>{{ $specialty }}</option>
+                    @endforeach
+                </select>
                 @error('specialization')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
 

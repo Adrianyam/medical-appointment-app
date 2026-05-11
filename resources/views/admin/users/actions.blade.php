@@ -1,12 +1,16 @@
 <div class="flex space-x-2">
-    <a href="{{ route('admin.users.edit', $user) }}" class="p-2 bg-blue-500 text-white rounded-md">
+    <a href="{{ route('admin.users.show', $user) }}" class="p-2 bg-emerald-500 text-white rounded-md" title="Ver información">
+        <i class="fa-solid fa-circle-info"></i>
+    </a>
+
+    <a href="{{ route('admin.users.edit', $user) }}" class="p-2 bg-blue-500 text-white rounded-md" title="Editar usuario">
         <i class="fa-solid fa-pen-to-square"></i>
     </a>
 
     <form action="{{ route('admin.users.destroy', $user) }}" method="POST" data-swal-confirm="true">
         @csrf
         @method('DELETE')
-        <button type="submit" class="p-2 bg-red-500 text-white rounded-md">
+        <button type="submit" class="p-2 bg-red-500 text-white rounded-md" title="Eliminar usuario">
             <i class="fa-solid fa-trash"></i>
         </button>
     </form>

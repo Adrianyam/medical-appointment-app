@@ -11,15 +11,42 @@
                 <input type="date" wire:model="searchDate" class="w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
             </div>
             <div>
-                <label class="block text-xs font-medium text-gray-500 mb-2">Hora</label>
+                <label class="block text-xs font-medium text-gray-500 mb-2">Hora inicio</label>
                 <div class="flex gap-2">
-                    <select wire:model.live="searchTimeHour" wire:change="updateSearchTime" class="flex-1 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
+                    <select wire:model.live="searchTimeHour" wire:change="updateSearchTime" class="w-24 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="12">12</option>
                         @for($i = 1; $i <= 11; $i++)
                             <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}</option>
                         @endfor
                     </select>
+                    <select wire:model.live="searchTimeMinute" wire:change="updateSearchTime" class="w-20 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="00">00</option>
+                        <option value="15">15</option>
+                        <option value="30">30</option>
+                        <option value="45">45</option>
+                    </select>
                     <select wire:model.live="searchTimePeriod" wire:change="updateSearchTime" class="w-20 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-2">Hora fin</label>
+                <div class="flex gap-2">
+                    <select wire:model.live="searchEndHour" wire:change="updateSearchTime" class="w-24 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="12">12</option>
+                        @for($i = 1; $i <= 11; $i++)
+                            <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}</option>
+                        @endfor
+                    </select>
+                    <select wire:model.live="searchEndMinute" wire:change="updateSearchTime" class="w-20 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="00">00</option>
+                        <option value="15">15</option>
+                        <option value="30">30</option>
+                        <option value="45">45</option>
+                    </select>
+                    <select wire:model.live="searchEndPeriod" wire:change="updateSearchTime" class="w-20 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="AM">AM</option>
                         <option value="PM">PM</option>
                     </select>
@@ -59,7 +86,7 @@
                             <div class="mt-4 border-t border-gray-100 pt-4">
                                 <p class="text-xs uppercase tracking-wide text-gray-500 mb-2">Horarios disponibles</p>
                                 <div class="inline-flex rounded-lg bg-indigo-100 text-indigo-700 px-4 py-2 text-sm font-medium">
-                                    {{ $this->getFormattedTime($searchTime ?: '08:00') }} - {{ $this->getFormattedTime($this->getPreviewEndTime($searchTime ?: '08:00')) }}
+                                    {{ $this->getFormattedTime($start_time ?: $searchTime ?: '08:00') }} - {{ $this->getFormattedTime($end_time ?: $this->getPreviewEndTime($start_time ?: $searchTime ?: '08:00')) }}
                                 </div>
                             </div>
                         </div>
@@ -95,7 +122,7 @@
                     </div>
                 </div>
 
-                <div class="mt-5 space-y-4">
+                <form class="mt-5 space-y-4" wire:submit.prevent="confirmAppointment">
                     <div>
                         <label class="block text-xs font-medium text-gray-500 mb-2">Paciente</label>
                         <select wire:model="patient_id" class="w-full rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500">
@@ -113,10 +140,13 @@
                         @error('reason') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
 
-                    <button type="button" wire:click="confirmAppointment" class="w-full rounded-xl bg-indigo-600 text-white font-medium py-3 hover:bg-indigo-700 transition">
-                        Confirmar cita
+                    @error('doctor_id') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+
+                    <button type="submit" wire:loading.attr="disabled" wire:target="confirmAppointment" class="w-full rounded-xl bg-indigo-600 text-white font-medium py-3 hover:bg-indigo-700 transition disabled:opacity-70 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="confirmAppointment">Confirmar cita</span>
+                        <span wire:loading wire:target="confirmAppointment">Confirmando...</span>
                     </button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
